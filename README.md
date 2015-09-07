@@ -16,6 +16,8 @@ $ python simple_plot.py --file data.csv
 $ python simple_plot.py --file data.csv --only q1,q2
 ```
 
+**By default, the first field is considered as `x axis` data for every plots.**
+
 ## Subplots
 
 ```shell
