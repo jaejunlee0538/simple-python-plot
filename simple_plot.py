@@ -142,17 +142,17 @@ class PlotInfo(object):
                 self.add_shared_fields(x, ys)
 
     def print_info(self):
-        print "Type : %s" % self.plot_type.name
-        print "Fields : "
+        print "\t\tType : %s" % self.plot_type.name
+        print "\t\tFields : "
         if self.plot_type is PlotType.PLOT_2D:
             for i,_ in enumerate(self.x_names):
-                print "\t x : %s\t y : %s\n" % (self.x_names[i], self.y_names[i])
+                print "\t\t x : %s\t y : %s\n" % (self.x_names[i], self.y_names[i])
         elif self.plot_type is PlotType.PLOT_3D:
             for i,_ in enumerate(self.x_names):
-                print "\t x : %s\t y : %s\t z : %s\n" \
+                print "\t\t x : %s\t y : %s\t z : %s\n" \
                       % (self.x_names[i], self.y_names[i], self.z_names[i])
         else:
-            print "\tInvalid Fields"
+            print "\t\tInvalid Fields"
 
     def plot(self, ax, data):
         if self.plot_type == PlotType.PLOT_2D:
@@ -162,7 +162,7 @@ class PlotInfo(object):
             ax.legend(loc='upper right', shadow=True)
             # ax.set_xlabel(self.x_names[i])
         elif self.plot_type == PlotType.PLOT_3D:
-            pass
+            pass #TODO : 3d plot
         else:
             print "PlotInfo::plot error"
 
@@ -193,7 +193,8 @@ class FigInfo(object):
             print "Failed to parse subplot => %s" % info
 
     def print_info(self):
-        for subplt in self.subplots_list:
+        for i, subplt in enumerate(self.subplots_list):
+            print "\tSubplot %d : "%i
             subplt.print_info()
 
     def plot(self, data):
@@ -232,7 +233,8 @@ class FigManager(object):
             print "Failed to parse figure => %s" % info
 
     def print_info(self):
-        for fig in self.figs_list:
+        for i, fig in enumerate(self.figs_list):
+            print "Figure %d : " % i
             fig.print_info()
 
     def add_2d_simple_figure(self, x_name, y_name):
@@ -296,9 +298,7 @@ def parsePlotInfo(info_str=""):
 
     return top_level
 
-
 if __name__=="__main__":
-
     #######################Options Parsing########################
     parser = opt.OptionParser()
     parser.set_usage("Usage: %prog --file filename [options]")
@@ -319,16 +319,26 @@ if __name__=="__main__":
                       action="callback",
                       callback=optcallback_parse_only)
 
-    parser.add_option("--figures",
-                      dest="figures",
+    parser.add_option("--conf",
+                      dest="config",
                       type="string",
                       default=""
                       )
+
+    parser.add_option("--conf-file",
+                      dest="conf_file",
+                      type="string",
+                      default="")
 
     options, remainder = parser.parse_args()
     if not options.file:
         parser.print_help()
         sys.exit(-1)
+
+    if not options.config:
+        if options.conf_file:
+            with open(options.conf_file, "r") as conf_file:
+                options.config = conf_file.readline()
 
     options.only = only_parsed
     #########################CSV Parsing##########################
@@ -336,15 +346,25 @@ if __name__=="__main__":
     # print names
     # print data_dic
 
+    if not options.config and options.only:
+        tmp_names = [n for n in names]
+        for i, name in enumerate(tmp_names):
+            if i is 0:
+                continue # first column is required at any circumstance
+            if name not in options.only:
+                del(data_dic[name])
+                names.remove(name)
+
+
+
     ########################Parsing Figures#######################
     fig_man = FigManager()
-    if not options.figures: # default
+    if not options.config: # default
         x_name = names[0]
         for idx in range(1,len(names)):
-            print names[idx]
             fig_man.add_2d_simple_figure(x_name, names[idx])
     else:
-        fig_man.parse(options.figures)
+        fig_man.parse(options.config)
 
     fig_man.print_info()
 
@@ -352,10 +372,3 @@ if __name__=="__main__":
 
     fig_man.plot(data_dic)
     plt.show()
-
-
-
-
-
-
-
