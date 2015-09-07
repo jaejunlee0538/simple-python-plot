@@ -157,7 +157,10 @@ class PlotInfo(object):
     def plot(self, ax, data):
         if self.plot_type == PlotType.PLOT_2D:
             for i in range(len(self.x_names)):
-                ax.plot(data[self.x_names[i]], data[self.y_names[i]])
+                ax.plot(data[self.x_names[i]], data[self.y_names[i]],
+                        label=self.y_names[i])
+            ax.legend(loc='upper right', shadow=True)
+            # ax.set_xlabel(self.x_names[i])
         elif self.plot_type == PlotType.PLOT_3D:
             pass
         else:
@@ -202,8 +205,12 @@ class FigInfo(object):
         if n_subplt == 1:
             self.subplots_list[0].plot(axarr, data)
         else:
-            for i, subplt in enumerate(self.subplots_list):
-                subplt.plot(axarr[i/grid[1], i%grid[1]], data)
+            if grid[0]==1 or grid[1]==1:
+                for i, subplt in enumerate(self.subplots_list):
+                    subplt.plot(axarr[i], data)
+            else:
+                for i, subplt in enumerate(self.subplots_list):
+                    subplt.plot(axarr[i/grid[1], i%grid[1]], data)
 
 class FigManager(object):
     def __init__(self):
@@ -323,13 +330,11 @@ if __name__=="__main__":
         parser.print_help()
         sys.exit(-1)
 
-    print options.file
     options.only = only_parsed
     #########################CSV Parsing##########################
     names, data_dic = parseCSV(options.file)
     # print names
     # print data_dic
-
 
     ########################Parsing Figures#######################
     fig_man = FigManager()
